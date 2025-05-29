@@ -1,0 +1,9 @@
+{
+  "name": "order-management",
+  "private": true,
+  "scripts": {
+    "lint": "npm --prefix backend run lint && npm --prefix frontend run lint",
+    "format": "npm --prefix backend run format && npm --prefix frontend run format",
+    "check": "npm run lint && npm run format"
+  }
+} 

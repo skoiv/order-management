@@ -20,7 +20,12 @@ export class OrderFormComponent implements OnInit {
     this.orderForm = this.fb.group({
       orderNumber: ['', Validators.required],
       description: ['', Validators.required],
-      amount: ['', Validators.required]
+      streetAddress: ['', Validators.required],
+      town: ['', Validators.required],
+      country: ['', Validators.required],
+      amount: ['', [Validators.required, Validators.pattern(/^\d+(\.\d{1,2})?$/)]],
+      currency: ['EUR', Validators.required],
+      paymentDueDate: ['', [Validators.required, Validators.pattern(/^\d{4}-\d{2}-\d{2}$/)]]
     });
   }
 
@@ -29,15 +34,25 @@ export class OrderFormComponent implements OnInit {
   onSubmit(): void {
     if (this.orderForm.valid) {
       const formValue = this.orderForm.value;
-      // Ensure amount is a string
+      // Ensure amount is a string and format date
       const order = {
         ...formValue,
-        amount: formValue.amount.toString()
+        amount: formValue.amount.toString(),
+        paymentDueDate: formValue.paymentDueDate
       };
       
       this.orderService.createOrder(order).subscribe({
         next: () => {
-          this.orderForm.reset();
+          this.orderForm.reset({
+            orderNumber: '',
+            description: '',
+            streetAddress: '',
+            town: '',
+            country: '',
+            amount: '',
+            currency: 'EUR',
+            paymentDueDate: ''
+          });
           // TODO: Add success notification
         },
         error: (error) => {

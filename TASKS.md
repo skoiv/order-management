@@ -67,3 +67,5 @@
 - [ ] Set up CI/CD pipeline
 - [ ] Implement E2E tests
 - [ ] Set up test coverage reporting
+- [ ] Set up own model for service layer
+- [ ] Set up interceptor, mw or framework level logging or integrate 3rd party solution

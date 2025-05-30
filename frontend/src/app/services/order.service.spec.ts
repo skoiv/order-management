@@ -16,16 +16,12 @@ describe('OrderService', () => {
     country: 'Test Country',
     amount: '100.00',
     currency: 'EUR',
-    paymentDueDate: '2024-12-31'
+    paymentDueDate: '2024-12-31',
   };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [
-        OrderService,
-        provideHttpClient(withFetch()),
-        provideHttpClientTesting()
-      ]
+      providers: [OrderService, provideHttpClient(withFetch()), provideHttpClientTesting()],
     });
     service = TestBed.inject(OrderService);
     httpMock = TestBed.inject(HttpTestingController);
@@ -55,13 +51,13 @@ describe('OrderService', () => {
       const errorMessage = 'Failed to create order';
 
       service.createOrder(mockOrder).subscribe({
-        error: (error) => {
+        error: error => {
           expect(error.error).toBe(errorMessage);
-        }
+        },
       });
 
       const req = httpMock.expectOne('http://localhost:3000/api/orders');
       req.flush(errorMessage, { status: 400, statusText: 'Bad Request' });
     });
   });
-}); 
+});

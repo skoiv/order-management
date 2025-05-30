@@ -1,4 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import Big from 'big.js';
 
 @Entity()
 export class Order {
@@ -23,12 +24,22 @@ export class Order {
   @Column('decimal', {
     precision: 10,
     scale: 2,
+    transformer: {
+      from: (value: string) => (value ? new Big(value) : null),
+      to: (value: Big) => (value ? value.toString() : null),
+    },
   })
-  amount: string;
+  amount: Big;
 
   @Column()
   currency: string;
 
-  @Column({ type: 'date' })
+  @Column({
+    type: 'date',
+    transformer: {
+      from: (value: string) => (value ? new Date(value) : null),
+      to: (value: Date) => value,
+    },
+  })
   paymentDueDate: Date;
 }

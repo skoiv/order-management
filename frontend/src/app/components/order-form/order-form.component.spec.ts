@@ -17,7 +17,7 @@ describe('OrderFormComponent', () => {
     country: 'Test Country',
     amount: '99.99',
     currency: 'EUR',
-    paymentDueDate: '2024-12-31'
+    paymentDueDate: '2024-12-31',
   };
 
   beforeEach(async () => {
@@ -26,9 +26,7 @@ describe('OrderFormComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [ReactiveFormsModule, OrderFormComponent],
-      providers: [
-        { provide: OrderService, useValue: spy }
-      ]
+      providers: [{ provide: OrderService, useValue: spy }],
     }).compileComponents();
 
     orderService = TestBed.inject(OrderService) as jasmine.SpyObj<OrderService>;
@@ -81,7 +79,7 @@ describe('OrderFormComponent', () => {
 
     it('should validate amount format', () => {
       const amountControl = component.orderForm.get('amount');
-      
+
       amountControl?.setValue('invalid');
       expect(amountControl?.errors?.['pattern']).toBeTruthy();
 
@@ -97,7 +95,7 @@ describe('OrderFormComponent', () => {
 
     it('should validate payment due date format', () => {
       const dueDateControl = component.orderForm.get('paymentDueDate');
-      
+
       dueDateControl?.setValue('invalid');
       expect(dueDateControl?.errors?.['pattern']).toBeTruthy();
 
@@ -151,7 +149,7 @@ describe('OrderFormComponent', () => {
   describe('Currency Handling', () => {
     it('should accept valid currencies', () => {
       const currencyControl = component.orderForm.get('currency');
-      
+
       ['EUR', 'USD', 'GBP'].forEach(currency => {
         currencyControl?.setValue(currency);
         expect(currencyControl?.errors).toBeNull();
@@ -164,4 +162,4 @@ describe('OrderFormComponent', () => {
       expect(component.orderForm.get('currency')?.value).toBe('EUR');
     });
   });
-}); 
+});

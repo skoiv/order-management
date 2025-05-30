@@ -24,4 +24,4 @@ export class OrderResponseDto {
     dto.paymentDueDate = order.paymentDueDate.toLocaleDateString('en-CA');
     return dto;
   }
-} 
+}

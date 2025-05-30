@@ -12,8 +12,9 @@ export class OrdersController {
   ) {}
 
   @Get()
-  findAll() {
-    return [];
+  async findAll(): Promise<OrderResponseDto[]> {
+    const orders = await this.ordersService.findAll();
+    return orders.map((order) => this.orderMapper.toDto(order));
   }
 
   @Post()

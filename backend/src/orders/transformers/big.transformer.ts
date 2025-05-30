@@ -8,4 +8,4 @@ export class BigTransformer implements ValueTransformer {
   from(value: string): Big {
     return new Big(value);
   }
-} 
+}

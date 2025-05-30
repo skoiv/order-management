@@ -21,11 +21,11 @@ export async function createTestingModule(): Promise<TestingModule> {
 export async function createTestApp(): Promise<INestApplication> {
   const moduleFixture = await createTestingModule();
   const app = moduleFixture.createNestApplication();
-  
+
   // Apply the same middleware and configuration as the main app
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe());
-  
+
   await app.init();
   return app;
 }

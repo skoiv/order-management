@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { OrderService } from '../../services/order.service';
 import { CommonModule } from '@angular/common';
@@ -8,14 +8,14 @@ import { CommonModule } from '@angular/common';
   templateUrl: './order-form.component.html',
   styleUrls: ['./order-form.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule]
+  imports: [CommonModule, ReactiveFormsModule],
 })
-export class OrderFormComponent implements OnInit {
+export class OrderFormComponent {
   orderForm: FormGroup;
 
   constructor(
     private fb: FormBuilder,
-    private orderService: OrderService
+    private orderService: OrderService,
   ) {
     this.orderForm = this.fb.group({
       orderNumber: ['', Validators.required],
@@ -25,11 +25,9 @@ export class OrderFormComponent implements OnInit {
       country: ['', Validators.required],
       amount: ['', [Validators.required, Validators.pattern(/^\d+(\.\d{1,2})?$/)]],
       currency: ['EUR', Validators.required],
-      paymentDueDate: ['', [Validators.required, Validators.pattern(/^\d{4}-\d{2}-\d{2}$/)]]
+      paymentDueDate: ['', [Validators.required, Validators.pattern(/^\d{4}-\d{2}-\d{2}$/)]],
     });
   }
-
-  ngOnInit(): void {}
 
   onSubmit(): void {
     if (this.orderForm.valid) {
@@ -38,9 +36,9 @@ export class OrderFormComponent implements OnInit {
       const order = {
         ...formValue,
         amount: formValue.amount.toString(),
-        paymentDueDate: formValue.paymentDueDate
+        paymentDueDate: formValue.paymentDueDate,
       };
-      
+
       this.orderService.createOrder(order).subscribe({
         next: () => {
           this.orderForm.reset({
@@ -51,15 +49,15 @@ export class OrderFormComponent implements OnInit {
             country: '',
             amount: '',
             currency: 'EUR',
-            paymentDueDate: ''
+            paymentDueDate: '',
           });
           // TODO: Add success notification
         },
-        error: (error) => {
+        error: error => {
           console.error('Error creating order:', error);
           // TODO: Add error notification
-        }
+        },
       });
     }
   }
-} 
+}

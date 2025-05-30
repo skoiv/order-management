@@ -7,4 +7,4 @@ export interface Order {
   amount: string;
   currency: string;
   paymentDueDate: string;
-} 
+}

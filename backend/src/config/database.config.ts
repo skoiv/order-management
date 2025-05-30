@@ -10,4 +10,4 @@ export const databaseConfig: TypeOrmModuleOptions = {
   database: process.env.DATABASE_NAME || 'order_management',
   entities: [Order],
   synchronize: process.env.NODE_ENV !== 'production',
-}; 
+};

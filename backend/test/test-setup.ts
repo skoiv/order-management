@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TestDatabase } from './test-database';
 import { OrdersModule } from '../src/orders/orders.module';
@@ -21,6 +21,11 @@ export async function createTestingModule(): Promise<TestingModule> {
 export async function createTestApp(): Promise<INestApplication> {
   const moduleFixture = await createTestingModule();
   const app = moduleFixture.createNestApplication();
+  
+  // Apply the same middleware and configuration as the main app
+  app.setGlobalPrefix('api');
+  app.useGlobalPipes(new ValidationPipe());
+  
   await app.init();
   return app;
 }

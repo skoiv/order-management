@@ -1,7 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { createTestApp, closeTestApp } from './test-setup';
-import Big from 'big.js';
 
 describe('OrdersController (e2e)', () => {
   let app: INestApplication;
@@ -14,23 +13,23 @@ describe('OrdersController (e2e)', () => {
     await closeTestApp(app);
   });
 
-  describe('POST /orders', () => {
+  describe('POST /api/orders', () => {
     it('should create a new order', async () => {
       const createOrderDto = {
         orderNumber: 'ORD-001',
         description: 'Test order',
-        amount: new Big('100.50'),
+        amount: '100.50',
       };
 
       const response = await request(app.getHttpServer())
-        .post('/orders')
+        .post('/api/orders')
         .send(createOrderDto)
         .expect(201);
 
       expect(response.body).toMatchObject({
         orderNumber: createOrderDto.orderNumber,
         description: createOrderDto.description,
-        amount: createOrderDto.amount.toString(),
+        amount: createOrderDto.amount,
       });
     });
   });

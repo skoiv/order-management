@@ -1,6 +1,4 @@
-import { IsNotEmpty, IsString, Min } from 'class-validator';
-import { Transform } from 'class-transformer';
-import Big from 'big.js';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateOrderDto {
   @IsString()
@@ -11,7 +9,7 @@ export class CreateOrderDto {
   @IsNotEmpty()
   description: string;
 
-  @Transform(({ value }) => new Big(value))
-  @Min(0)
-  amount: Big;
+  @IsString()
+  @IsNotEmpty()
+  amount: string;
 }

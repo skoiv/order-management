@@ -1,0 +1,49 @@
+<div class="order-form-container">
+  <h2>Create New Order</h2>
+  <form [formGroup]="orderForm" (ngSubmit)="onSubmit()" class="order-form">
+    <div class="form-group">
+      <label for="orderNumber">Order Number</label>
+      <input
+        type="text"
+        id="orderNumber"
+        formControlName="orderNumber"
+        class="form-control"
+        placeholder="Enter order number"
+      />
+      <div class="error-message" *ngIf="orderForm.get('orderNumber')?.invalid && orderForm.get('orderNumber')?.touched">
+        Order number is required
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="description">Description</label>
+      <textarea
+        id="description"
+        formControlName="description"
+        class="form-control"
+        placeholder="Enter order description"
+      ></textarea>
+      <div class="error-message" *ngIf="orderForm.get('description')?.invalid && orderForm.get('description')?.touched">
+        Description is required
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="amount">Amount</label>
+      <input
+        type="text"
+        id="amount"
+        formControlName="amount"
+        class="form-control"
+        placeholder="Enter amount"
+      />
+      <div class="error-message" *ngIf="orderForm.get('amount')?.invalid && orderForm.get('amount')?.touched">
+        Amount is required
+      </div>
+    </div>
+
+    <button type="submit" [disabled]="!orderForm.valid" class="submit-button">
+      Create Order
+    </button>
+  </form>
+</div> 

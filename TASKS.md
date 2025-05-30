@@ -18,7 +18,7 @@
 
 ### Controller Layer
 - [x] Create endpoint for creating new orders
-- [ ] Create endpoint for retrieving and filtering orders (by country and description)
+- [x] Create endpoint for retrieving orders
 
 ## Frontend Tasks
 
@@ -38,7 +38,7 @@
 - [x] Create error handling and display
 
 ### Order List Component
-- [ ] Create order list view
+- [x] Create order list view
 - [ ] Implement country filter
 - [ ] Implement description text search
 - [ ] Add Estonia orders first sorting
@@ -66,5 +66,6 @@
 - [ ] Implement E2E tests
 - [ ] Set up test coverage reporting
 - [ ] Set up own model for service layer
-- [ ] Set up interceptor, mw or framework level logging or integrate 3rd party solution- [ ] Implement database migrations
+- [ ] Set up interceptor, mw or framework level logging or integrate 3rd party solution
+- [ ] Implement database migrations
 - [ ] Add loading states

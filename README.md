@@ -9,7 +9,6 @@ A full-stack order management system built with Angular and NestJS, containerize
 git clone <repository-url>
 cd order-management
 ```
-
 2. Start the application:
 ```bash
 docker-compose up
@@ -78,4 +77,8 @@ Development workflow:
 
 ### Testing
 - Frontend: Karma, Jasmine
-- Backend: Jest 
+- Backend: Jest
+
+## Implementation Plan
+
+For a detailed breakdown of implementation tasks and progress tracking, please refer to [TASKS.md](TASKS.md).

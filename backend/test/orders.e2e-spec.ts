@@ -1,6 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { createTestApp } from './test-setup';
+import { createTestApp, closeTestApp } from './test-setup';
 import Big from 'big.js';
 
 describe('OrdersController (e2e)', () => {
@@ -10,8 +10,8 @@ describe('OrdersController (e2e)', () => {
     app = await createTestApp();
   });
 
-  afterAll(async () => {
-    await app.close();
+  afterAll(async () => {   
+    await closeTestApp(app);
   });
 
   describe('POST /orders', () => {

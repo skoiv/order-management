@@ -16,10 +16,12 @@ A full-stack order management system built with Angular and NestJS, containerize
 git clone https://github.com/skoiv/order-management.git
 cd order-management
 ```
-2. Run backend and frontend tests
+
+2. Run backend and frontend tests (this will automatically install all dependencies):
 ```bash
 npm test
 ```
+
 3. Start the application:
 ```bash
 docker-compose up

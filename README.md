@@ -4,12 +4,23 @@ A full-stack order management system built with Angular and NestJS, containerize
 
 ## Quick Start
 
+### Prerequisites
+
+- git
+- Node.js v22
+- npm v10
+- Docker and Docker Compose
+
 1. Clone the repository:
 ```bash
 git clone <repository-url>
 cd order-management
 ```
-2. Start the application:
+2. Run backend and frontend tests
+```bash
+npm test
+```
+3. Start the application:
 ```bash
 docker-compose up
 ```
@@ -17,12 +28,6 @@ docker-compose up
 The application will be available at:
 - Frontend: http://localhost:4200
 - Backend: http://localhost:3000
-
-## Prerequisites
-
-- Docker and Docker Compose
-- Node.js (v22 LTS or later)
-- npm (v10 or later)
 
 ## Code Quality: Linting and Formatting
 
@@ -51,9 +56,8 @@ Development workflow:
 ### Backend (NestJS)
 
 The backend is built with NestJS and provides a RESTful API. Key features:
-- TypeScript for type safety
-- DTOs for request/response validation
-- Environment-based configuration
+- TypeScript
+- DTOs for request/response
 - Docker containerization
 
 Development workflow:
@@ -63,14 +67,14 @@ Development workflow:
 ## Technology Stack
 
 ### Frontend
-- Framework: Angular 17
+- Framework: Angular 19
 - Language: TypeScript
 - Styling: SCSS
 - Package Manager: npm
 - Container: Node.js 22 Alpine
 
 ### Backend
-- Framework: NestJS
+- Framework: NestJS 11
 - Language: TypeScript
 - Package Manager: npm
 - Container: Node.js 22 Alpine
@@ -82,3 +86,4 @@ Development workflow:
 ## Implementation Plan
 
 For a detailed breakdown of implementation tasks and progress tracking, please refer to [TASKS.md](TASKS.md).
+For planned future improvements, see the [Future Considerations](TASKS.md#future-considerations) section.

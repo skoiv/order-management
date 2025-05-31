@@ -4,6 +4,9 @@
   "scripts": {
     "lint": "npm --prefix backend run lint && npm --prefix frontend run lint",
     "format": "npm --prefix backend run format && npm --prefix frontend run format",
-    "check": "npm run lint && npm run format"
+    "check": "npm run lint && npm run format",
+    "test-backend": "npm --prefix backend run test:e2e",
+    "test-frontend": "npm --prefix frontend run test -- --browsers ChromeHeadless --watch=false",
+    "test": "npm run test-backend && npm run test-frontend"
   }
 } 

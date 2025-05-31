@@ -69,6 +69,7 @@ describe('OrderListComponent', () => {
 
   it('should handle error when loading orders fails', fakeAsync(() => {
     const errorMessage = 'Failed to fetch orders';
+    const consoleSpy = spyOn(console, 'error');
     orderService.getOrders.and.returnValue(throwError(() => new Error(errorMessage)));
     fixture.detectChanges();
     tick();
@@ -77,6 +78,7 @@ describe('OrderListComponent', () => {
     expect(component.filteredOrders).toEqual([]);
     expect(component.error).toBe('Failed to load orders. Please try again later.');
     expect(orderService.getOrders).toHaveBeenCalled();
+    expect(consoleSpy).toHaveBeenCalled();
   }));
 
   describe('Order Sorting', () => {

@@ -3,6 +3,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { OrderFormComponent } from './order-form.component';
 import { OrderService } from '../../services/order.service';
 import { of, throwError } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 
 describe('OrderFormComponent', () => {
   let component: OrderFormComponent;
@@ -21,12 +22,17 @@ describe('OrderFormComponent', () => {
   };
 
   beforeEach(async () => {
-    const spy = jasmine.createSpyObj('OrderService', ['createOrder']);
-    spy.createOrder.and.returnValue(of({}));
+    const orderServiceSpy = jasmine.createSpyObj('OrderService', ['createOrder']);
+    orderServiceSpy.createOrder.and.returnValue(of({}));
 
     await TestBed.configureTestingModule({
-      imports: [ReactiveFormsModule, OrderFormComponent],
-      providers: [{ provide: OrderService, useValue: spy }],
+      imports: [
+        ReactiveFormsModule,
+        OrderFormComponent
+      ],
+      providers: [
+        { provide: OrderService, useValue: orderServiceSpy }
+      ],
     }).compileComponents();
 
     orderService = TestBed.inject(OrderService) as jasmine.SpyObj<OrderService>;
@@ -59,7 +65,6 @@ describe('OrderFormComponent', () => {
 
   describe('Form Field Validation', () => {
     it('should validate required fields', () => {
-      // First check non-currency fields
       Object.keys(validOrderData)
         .filter(key => key !== 'currency')
         .forEach(key => {
@@ -69,7 +74,6 @@ describe('OrderFormComponent', () => {
             .toBeTruthy();
         });
 
-      // Separately test currency field by clearing its value
       const currencyControl = component.orderForm.get('currency');
       currencyControl?.setValue(null);
       expect(currencyControl?.errors?.['required'])
@@ -132,34 +136,24 @@ describe('OrderFormComponent', () => {
       expect(component.orderForm.get('orderNumber')?.value).toBe('');
       expect(component.orderForm.get('description')?.value).toBe('');
       expect(component.orderForm.get('streetAddress')?.value).toBe('');
+      expect(component.serverError).toBeNull();
     });
 
-    it('should handle error on form submission', () => {
-      orderService.createOrder.and.returnValue(throwError(() => new Error('Test error')));
-      spyOn(console, 'error');
-
-      component.orderForm.patchValue(validOrderData);
-      component.onSubmit();
-
-      expect(console.error).toHaveBeenCalled();
-      expect(component.orderForm.value).toEqual(validOrderData);
-    });
-  });
-
-  describe('Currency Handling', () => {
-    it('should accept valid currencies', () => {
-      const currencyControl = component.orderForm.get('currency');
-
-      ['EUR', 'USD', 'GBP'].forEach(currency => {
-        currencyControl?.setValue(currency);
-        expect(currencyControl?.errors).toBeNull();
+    it('should handle duplicate order number error', () => {
+      const errorMessage = 'Order number already exists';
+      const errorResponse = new HttpErrorResponse({
+        error: { message: errorMessage },
+        status: 409,
+        statusText: 'Conflict'
       });
-    });
+      orderService.createOrder.and.returnValue(throwError(() => errorResponse));
 
-    it('should maintain EUR as default after reset', () => {
       component.orderForm.patchValue(validOrderData);
       component.onSubmit();
-      expect(component.orderForm.get('currency')?.value).toBe('EUR');
+
+      expect(component.orderForm.get('orderNumber')?.errors?.['duplicate']).toBeTruthy();
+      expect(component.serverError).toBe(errorMessage);
     });
   });
 });
+

@@ -12,9 +12,10 @@
       />
       <div
         class="error-message"
-        *ngIf="orderForm.get('orderNumber')?.invalid && orderForm.get('orderNumber')?.touched"
+        *ngIf="orderForm.get('orderNumber')?.invalid && (orderForm.get('orderNumber')?.dirty || orderForm.get('orderNumber')?.touched)"
       >
-        Order number is required
+        <span *ngIf="orderForm.get('orderNumber')?.errors?.['required']">Order number is required</span>
+        <span *ngIf="orderForm.get('orderNumber')?.errors?.['duplicate']">{{ serverError || 'This order number already exists' }}</span>
       </div>
     </div>
 
@@ -100,9 +101,7 @@
         *ngIf="orderForm.get('amount')?.invalid && orderForm.get('amount')?.touched"
       >
         <span *ngIf="orderForm.get('amount')?.errors?.['required']">Amount is required</span>
-        <span *ngIf="orderForm.get('amount')?.errors?.['pattern']"
-          >Please enter a valid amount (e.g., 99.99)</span
-        >
+        <span *ngIf="orderForm.get('amount')?.errors?.['pattern']">Please enter a valid amount (e.g., 99.99)</span>
       </div>
     </div>
 
@@ -133,12 +132,8 @@
         class="error-message"
         *ngIf="orderForm.get('paymentDueDate')?.invalid && orderForm.get('paymentDueDate')?.touched"
       >
-        <span *ngIf="orderForm.get('paymentDueDate')?.errors?.['required']"
-          >Payment due date is required</span
-        >
-        <span *ngIf="orderForm.get('paymentDueDate')?.errors?.['pattern']"
-          >Please enter a valid date (YYYY-MM-DD)</span
-        >
+        <span *ngIf="orderForm.get('paymentDueDate')?.errors?.['required']">Payment due date is required</span>
+        <span *ngIf="orderForm.get('paymentDueDate')?.errors?.['pattern']">Please enter a valid date (YYYY-MM-DD)</span>
       </div>
     </div>
 

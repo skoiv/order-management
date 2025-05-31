@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { OrderService } from '../../services/order.service';
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-order-form',
@@ -12,6 +13,7 @@ import { CommonModule } from '@angular/common';
 })
 export class OrderFormComponent {
   orderForm: FormGroup;
+  serverError: string | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -31,8 +33,8 @@ export class OrderFormComponent {
 
   onSubmit(): void {
     if (this.orderForm.valid) {
+      this.serverError = null;
       const formValue = this.orderForm.value;
-      // Ensure amount is a string and format date
       const order = {
         ...formValue,
         amount: formValue.amount.toString(),
@@ -51,11 +53,12 @@ export class OrderFormComponent {
             currency: 'EUR',
             paymentDueDate: '',
           });
-          // TODO: Add success notification
         },
-        error: error => {
-          console.error('Error creating order:', error);
-          // TODO: Add error notification
+        error: (error: HttpErrorResponse) => {
+          if (error.status === 409) {
+            this.orderForm.get('orderNumber')?.setErrors({ duplicate: true });
+            this.serverError = error.error.message;
+          }
         },
       });
     }

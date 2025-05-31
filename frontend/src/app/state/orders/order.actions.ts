@@ -39,3 +39,5 @@ export const createOrderFailure = createAction(
   '[Order] Create Order Failure',
   props<{ error: string }>(),
 );
+
+export const resetCreateOrderSuccess = createAction('[Order] Reset Create Order Success');

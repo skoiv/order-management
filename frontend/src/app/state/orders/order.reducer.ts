@@ -78,4 +78,11 @@ export const orderReducer = createReducer(
       createOrderSuccess: false,
     }),
   ),
+  on(
+    OrderActions.resetCreateOrderSuccess,
+    (state): OrderState => ({
+      ...state,
+      createOrderSuccess: false,
+    }),
+  ),
 );

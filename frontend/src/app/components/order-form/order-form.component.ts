@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -15,10 +15,11 @@ import { Subject, takeUntil } from 'rxjs';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, MaterialModule],
 })
-export class OrderFormComponent implements OnDestroy {
+export class OrderFormComponent implements OnInit, OnDestroy {
   orderForm: FormGroup;
   serverError: string | null = null;
   private destroy$ = new Subject<void>();
+  private isNavigating = false;
 
   loading$ = this.store.select(OrderSelectors.selectLoading);
   error$ = this.store.select(OrderSelectors.selectError);
@@ -43,7 +44,7 @@ export class OrderFormComponent implements OnDestroy {
 
     // Subscribe to duplicate order errors
     this.duplicateError$.pipe(takeUntil(this.destroy$)).subscribe(error => {
-      if (error) {
+      if (error && !this.isNavigating) {
         this.orderForm.get('orderNumber')?.setErrors({ duplicate: true });
         this.serverError = error;
       }
@@ -51,17 +52,9 @@ export class OrderFormComponent implements OnDestroy {
 
     // Subscribe to success state to handle navigation
     this.createOrderSuccess$.pipe(takeUntil(this.destroy$)).subscribe(success => {
-      if (success) {
-        this.orderForm.reset({
-          orderNumber: '',
-          description: '',
-          streetAddress: '',
-          town: '',
-          country: '',
-          amount: '',
-          currency: 'EUR',
-          paymentDueDate: '',
-        });
+      if (success && !this.isNavigating) {
+        this.isNavigating = true;
+        this.store.dispatch(OrderActions.resetCreateOrderSuccess());
         this.navigateToList();
       }
     });
@@ -71,11 +64,18 @@ export class OrderFormComponent implements OnDestroy {
       .get('amount')
       ?.valueChanges.pipe(takeUntil(this.destroy$))
       .subscribe(value => {
-        const formattedValue = OrderSelectors.selectFormattedAmount(value);
-        if (formattedValue !== value) {
-          this.orderForm.get('amount')?.setValue(formattedValue, { emitEvent: false });
+        if (!this.isNavigating) {
+          const formattedValue = OrderSelectors.selectFormattedAmount(value);
+          if (formattedValue !== value) {
+            this.orderForm.get('amount')?.setValue(formattedValue, { emitEvent: false });
+          }
         }
       });
+  }
+
+  ngOnInit(): void {
+    // Reset create success state when component initializes
+    this.store.dispatch(OrderActions.resetCreateOrderSuccess());
   }
 
   ngOnDestroy(): void {

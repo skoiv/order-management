@@ -26,13 +26,8 @@ describe('OrderFormComponent', () => {
     orderServiceSpy.createOrder.and.returnValue(of({}));
 
     await TestBed.configureTestingModule({
-      imports: [
-        ReactiveFormsModule,
-        OrderFormComponent
-      ],
-      providers: [
-        { provide: OrderService, useValue: orderServiceSpy }
-      ],
+      imports: [ReactiveFormsModule, OrderFormComponent],
+      providers: [{ provide: OrderService, useValue: orderServiceSpy }],
     }).compileComponents();
 
     orderService = TestBed.inject(OrderService) as jasmine.SpyObj<OrderService>;
@@ -144,7 +139,7 @@ describe('OrderFormComponent', () => {
       const errorResponse = new HttpErrorResponse({
         error: { message: errorMessage },
         status: 409,
-        statusText: 'Conflict'
+        statusText: 'Conflict',
       });
       orderService.createOrder.and.returnValue(throwError(() => errorResponse));
 
@@ -156,4 +151,3 @@ describe('OrderFormComponent', () => {
     });
   });
 });
-

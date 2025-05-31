@@ -1,5 +1,3 @@
-import { Order } from '../entities/order.entity';
-
 export class OrderResponseDto {
   id: string;
   orderNumber: string;

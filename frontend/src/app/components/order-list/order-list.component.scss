@@ -16,6 +16,38 @@
   border-radius: 4px;
 }
 
+.filters {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 20px;
+  align-items: flex-end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  label {
+    font-weight: 500;
+    color: #333;
+  }
+}
+
+.filter-control {
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+  min-width: 200px;
+
+  &:focus {
+    outline: none;
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+}
+
 .table-container {
   overflow-x: auto;
 }

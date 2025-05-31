@@ -39,10 +39,9 @@
 
 ### Order List Component
 - [x] Create order list view
-- [ ] Implement country filter
-- [ ] Implement description text search
-- [ ] Add Estonia orders first sorting
-- [ ] Add payment due date ascending sorting
+- [ ] Implement description and country filtering
+- [x] Add Estonia orders first sorting
+- [x] Add payment due date ascending sorting
 
 ### Services and State Management
 - [x] Create order service for API communication
@@ -59,13 +58,11 @@
 - [x] Development guidelines
 
 ## Future Considerations
-- [ ] Implement pagination for order list
+- [ ] Implement pagination/server side list
 - [ ] API documentation (Swagger)
 - [ ] Deployment instructions 
 - [ ] Set up CI/CD pipeline
 - [ ] Implement E2E tests
 - [ ] Set up test coverage reporting
-- [ ] Set up own model for service layer
 - [ ] Set up interceptor, mw or framework level logging or integrate 3rd party solution
 - [ ] Implement database migrations
-- [ ] Add loading states

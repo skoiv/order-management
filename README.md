@@ -43,7 +43,7 @@ This script runs ESLint and Prettier for both the backend and frontend.
 
 ### Frontend (Angular)
 
-The frontend is built with Angular 17 and uses standalone components. Key features:
+The frontend is built with Angular 19 and uses standalone components. Key features:
 - Modern Angular features (standalone components, signals)
 - TypeScript for type safety
 - SCSS for styling

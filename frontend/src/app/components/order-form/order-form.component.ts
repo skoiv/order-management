@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { OrderService } from '../../services/order.service';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-order-form',
@@ -18,6 +19,7 @@ export class OrderFormComponent {
   constructor(
     private fb: FormBuilder,
     private orderService: OrderService,
+    private router: Router,
   ) {
     this.orderForm = this.fb.group({
       orderNumber: ['', Validators.required],
@@ -53,6 +55,7 @@ export class OrderFormComponent {
             currency: 'EUR',
             paymentDueDate: '',
           });
+          this.navigateToList();
         },
         error: (error: HttpErrorResponse) => {
           if (error.status === 409) {
@@ -62,5 +65,9 @@ export class OrderFormComponent {
         },
       });
     }
+  }
+
+  navigateToList() {
+    this.router.navigate(['/orders']);
   }
 }

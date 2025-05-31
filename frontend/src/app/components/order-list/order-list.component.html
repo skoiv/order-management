@@ -1,5 +1,8 @@
 <div class="order-list-container">
-  <h2>Orders</h2>
+  <div class="header">
+    <h2>Orders</h2>
+    <button class="create-button" (click)="navigateToCreate()">Create New Order</button>
+  </div>
 
   <div *ngIf="error" class="error-message">
     {{ error }}

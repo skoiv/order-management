@@ -4,11 +4,13 @@ import { OrderFormComponent } from './order-form.component';
 import { OrderService } from '../../services/order.service';
 import { of, throwError } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
+import { Router } from '@angular/router';
 
 describe('OrderFormComponent', () => {
   let component: OrderFormComponent;
   let fixture: ComponentFixture<OrderFormComponent>;
   let orderService: jasmine.SpyObj<OrderService>;
+  let router: jasmine.SpyObj<Router>;
 
   const validOrderData = {
     orderNumber: 'ORD-001',
@@ -25,12 +27,18 @@ describe('OrderFormComponent', () => {
     const orderServiceSpy = jasmine.createSpyObj('OrderService', ['createOrder']);
     orderServiceSpy.createOrder.and.returnValue(of({}));
 
+    const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+
     await TestBed.configureTestingModule({
       imports: [ReactiveFormsModule, OrderFormComponent],
-      providers: [{ provide: OrderService, useValue: orderServiceSpy }],
+      providers: [
+        { provide: OrderService, useValue: orderServiceSpy },
+        { provide: Router, useValue: routerSpy },
+      ],
     }).compileComponents();
 
     orderService = TestBed.inject(OrderService) as jasmine.SpyObj<OrderService>;
+    router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
   });
 
   beforeEach(() => {
@@ -148,6 +156,35 @@ describe('OrderFormComponent', () => {
 
       expect(component.orderForm.get('orderNumber')?.errors?.['duplicate']).toBeTruthy();
       expect(component.serverError).toBe(errorMessage);
+    });
+  });
+
+  describe('Navigation', () => {
+    it('should navigate to order list when back button is clicked', () => {
+      component.navigateToList();
+      expect(router.navigate).toHaveBeenCalledWith(['/orders']);
+    });
+
+    it('should render back button', () => {
+      fixture.detectChanges();
+      const backButton = fixture.nativeElement.querySelector('.back-button');
+      expect(backButton).toBeTruthy();
+      expect(backButton.textContent).toContain('Back to List');
+    });
+
+    it('should navigate when back button is clicked', () => {
+      fixture.detectChanges();
+      const backButton = fixture.nativeElement.querySelector('.back-button');
+      backButton.click();
+      expect(router.navigate).toHaveBeenCalledWith(['/orders']);
+    });
+
+    it('should navigate to list after successful form submission', () => {
+      component.orderForm.patchValue(validOrderData);
+      component.onSubmit();
+
+      expect(orderService.createOrder).toHaveBeenCalled();
+      expect(router.navigate).toHaveBeenCalledWith(['/orders']);
     });
   });
 });

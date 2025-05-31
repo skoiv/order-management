@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OrderService } from '../../services/order.service';
 import { Order } from '../../models/order.interface';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-order-list',
@@ -19,7 +20,10 @@ export class OrderListComponent implements OnInit {
   descriptionFilter: string = '';
   availableCountries: string[] = [];
 
-  constructor(private orderService: OrderService) {}
+  constructor(
+    private orderService: OrderService,
+    private router: Router,
+  ) {}
 
   ngOnInit(): void {
     this.loadOrders();
@@ -64,5 +68,9 @@ export class OrderListComponent implements OnInit {
         order.description.toLowerCase().includes(this.descriptionFilter.toLowerCase());
       return matchesCountry && matchesDescription;
     });
+  }
+
+  navigateToCreate() {
+    this.router.navigate(['/orders/create']);
   }
 }

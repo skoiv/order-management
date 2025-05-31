@@ -1,5 +1,8 @@
 <div class="order-form-container">
-  <h2>Create New Order</h2>
+  <div class="header">
+    <h2>Create New Order</h2>
+    <button type="button" class="back-button" (click)="navigateToList()">Back to List</button>
+  </div>
   <form [formGroup]="orderForm" (ngSubmit)="onSubmit()" class="order-form">
     <div class="form-group">
       <label for="orderNumber">Order Number</label>

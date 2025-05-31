@@ -4,11 +4,13 @@ import { OrderService } from '../../services/order.service';
 import { of, throwError } from 'rxjs';
 import { Order } from '../../models/order.interface';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 describe('OrderListComponent', () => {
   let component: OrderListComponent;
   let fixture: ComponentFixture<OrderListComponent>;
   let orderService: jasmine.SpyObj<OrderService>;
+  let router: jasmine.SpyObj<Router>;
 
   const mockOrders: Order[] = [
     {
@@ -34,15 +36,21 @@ describe('OrderListComponent', () => {
   ];
 
   beforeEach(async () => {
-    const spy = jasmine.createSpyObj('OrderService', ['getOrders']);
-    spy.getOrders.and.returnValue(of([])); // Default return value
+    const orderServiceSpy = jasmine.createSpyObj('OrderService', ['getOrders']);
+    orderServiceSpy.getOrders.and.returnValue(of([]));
+
+    const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
       imports: [OrderListComponent, FormsModule],
-      providers: [{ provide: OrderService, useValue: spy }],
+      providers: [
+        { provide: OrderService, useValue: orderServiceSpy },
+        { provide: Router, useValue: routerSpy },
+      ],
     }).compileComponents();
 
     orderService = TestBed.inject(OrderService) as jasmine.SpyObj<OrderService>;
+    router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
   });
 
   beforeEach(() => {
@@ -294,6 +302,27 @@ describe('OrderListComponent', () => {
 
       expect(countrySelect).toBeTruthy();
       expect(descriptionInput).toBeTruthy();
+    });
+  });
+
+  describe('Navigation', () => {
+    it('should navigate to create order form when create button is clicked', () => {
+      component.navigateToCreate();
+      expect(router.navigate).toHaveBeenCalledWith(['/orders/create']);
+    });
+
+    it('should render create button', () => {
+      fixture.detectChanges();
+      const createButton = fixture.nativeElement.querySelector('.create-button');
+      expect(createButton).toBeTruthy();
+      expect(createButton.textContent).toContain('Create New Order');
+    });
+
+    it('should navigate when create button is clicked', () => {
+      fixture.detectChanges();
+      const createButton = fixture.nativeElement.querySelector('.create-button');
+      createButton.click();
+      expect(router.navigate).toHaveBeenCalledWith(['/orders/create']);
     });
   });
 });

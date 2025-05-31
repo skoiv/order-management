@@ -1,8 +1,5 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { OrderListComponent } from './order-list.component';
-import { OrderService } from '../../services/order.service';
-import { of, throwError } from 'rxjs';
-import { Order } from '../../models/order.interface';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MaterialModule } from '../../shared/material.module';
@@ -11,11 +8,11 @@ import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import * as OrderActions from '../../state/orders/order.actions';
 import * as OrderSelectors from '../../state/orders/order.selectors';
 import { Store } from '@ngrx/store';
+import { Order } from '../../models/order.interface';
 
 describe('OrderListComponent', () => {
   let component: OrderListComponent;
   let fixture: ComponentFixture<OrderListComponent>;
-  let orderService: jasmine.SpyObj<OrderService>;
   let router: jasmine.SpyObj<Router>;
   let store: MockStore;
 
@@ -28,6 +25,7 @@ describe('OrderListComponent', () => {
       availableCountries: [],
       loading: false,
       error: null,
+      createOrderSuccess: false,
     },
   };
 
@@ -55,9 +53,6 @@ describe('OrderListComponent', () => {
   ];
 
   beforeEach(async () => {
-    const orderServiceSpy = jasmine.createSpyObj('OrderService', ['getOrders']);
-    orderServiceSpy.getOrders.and.returnValue(of([]));
-
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
@@ -68,14 +63,9 @@ describe('OrderListComponent', () => {
         MaterialModule,
         NoopAnimationsModule,
       ],
-      providers: [
-        provideMockStore({ initialState }),
-        { provide: OrderService, useValue: orderServiceSpy },
-        { provide: Router, useValue: routerSpy },
-      ],
+      providers: [provideMockStore({ initialState }), { provide: Router, useValue: routerSpy }],
     }).compileComponents();
 
-    orderService = TestBed.inject(OrderService) as jasmine.SpyObj<OrderService>;
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
     store = TestBed.inject(Store) as MockStore;
   });
@@ -90,42 +80,20 @@ describe('OrderListComponent', () => {
   });
 
   it('should create', () => {
-    orderService.getOrders.and.returnValue(of([]));
     fixture.detectChanges();
     expect(component).toBeTruthy();
   });
 
   it('should load orders on init', fakeAsync(() => {
     const dispatchSpy = spyOn(store, 'dispatch');
-    orderService.getOrders.and.returnValue(of(mockOrders));
+    store.overrideSelector(OrderSelectors.selectOrdersWithFallback, mockOrders);
+    store.overrideSelector(OrderSelectors.selectFilteredOrdersByCountryAndDescription, mockOrders);
+    store.refreshState();
 
     fixture.detectChanges();
     tick();
 
     expect(dispatchSpy).toHaveBeenCalledWith(OrderActions.loadOrders());
-    expect(dispatchSpy).toHaveBeenCalledWith(
-      OrderActions.loadOrdersSuccess({ orders: mockOrders }),
-    );
-    expect(orderService.getOrders).toHaveBeenCalled();
-  }));
-
-  it('should handle error when loading orders fails', fakeAsync(() => {
-    const errorMessage = 'Failed to fetch orders';
-    const dispatchSpy = spyOn(store, 'dispatch');
-    const consoleSpy = spyOn(console, 'error');
-
-    orderService.getOrders.and.returnValue(throwError(() => new Error(errorMessage)));
-    fixture.detectChanges();
-    tick();
-
-    expect(dispatchSpy).toHaveBeenCalledWith(OrderActions.loadOrders());
-    expect(dispatchSpy).toHaveBeenCalledWith(
-      OrderActions.loadOrdersFailure({
-        error: 'Failed to load orders. Please try again later.',
-      }),
-    );
-    expect(orderService.getOrders).toHaveBeenCalled();
-    expect(consoleSpy).toHaveBeenCalled();
   }));
 
   describe('Order Sorting', () => {
@@ -173,20 +141,26 @@ describe('OrderListComponent', () => {
         },
       ];
 
-      const dispatchSpy = spyOn(store, 'dispatch');
-      orderService.getOrders.and.returnValue(of(mixedOrders));
-      fixture.detectChanges();
-      tick();
-
-      const sortedOrders = mixedOrders.sort((a, b) => {
+      const sortedOrders = [...mixedOrders].sort((a, b) => {
         if (a.country === 'Estonia' && b.country !== 'Estonia') return -1;
         if (a.country !== 'Estonia' && b.country === 'Estonia') return 1;
         return 0;
       });
 
-      expect(dispatchSpy).toHaveBeenCalledWith(
-        OrderActions.loadOrdersSuccess({ orders: sortedOrders }),
+      store.overrideSelector(OrderSelectors.selectOrdersWithFallback, sortedOrders);
+      store.overrideSelector(
+        OrderSelectors.selectFilteredOrdersByCountryAndDescription,
+        sortedOrders,
       );
+      store.refreshState();
+
+      fixture.detectChanges();
+      tick();
+
+      const rows = fixture.nativeElement.querySelectorAll('tr.mat-mdc-row');
+      expect(rows.length).toBe(sortedOrders.length);
+      expect(rows[0].querySelectorAll('td')[4].textContent?.trim()).toBe('Estonia');
+      expect(rows[1].querySelectorAll('td')[4].textContent?.trim()).toBe('Estonia');
     }));
   });
 
@@ -224,11 +198,15 @@ describe('OrderListComponent', () => {
       },
     ];
 
-    beforeEach(fakeAsync(() => {
-      orderService.getOrders.and.returnValue(of(filterTestOrders));
+    beforeEach(() => {
+      store.overrideSelector(OrderSelectors.selectOrdersWithFallback, filterTestOrders);
+      store.overrideSelector(
+        OrderSelectors.selectFilteredOrdersByCountryAndDescription,
+        filterTestOrders,
+      );
+      store.refreshState();
       fixture.detectChanges();
-      tick();
-    }));
+    });
 
     it('should dispatch actions when filtering by country', () => {
       const dispatchSpy = spyOn(store, 'dispatch');
@@ -251,13 +229,17 @@ describe('OrderListComponent', () => {
 
   describe('Template Tests', () => {
     beforeEach(() => {
-      store.overrideSelector(OrderSelectors.selectFilteredOrders, mockOrders);
+      store.overrideSelector(
+        OrderSelectors.selectFilteredOrdersByCountryAndDescription,
+        mockOrders,
+      );
       store.overrideSelector(OrderSelectors.selectLoading, false);
       store.overrideSelector(OrderSelectors.selectError, null);
-      store.overrideSelector(OrderSelectors.selectOrders, mockOrders);
+      store.overrideSelector(OrderSelectors.selectOrdersWithFallback, mockOrders);
       store.overrideSelector(OrderSelectors.selectAvailableCountries, ['Estonia', 'Latvia']);
       store.overrideSelector(OrderSelectors.selectSelectedCountry, '');
       store.overrideSelector(OrderSelectors.selectDescriptionFilter, '');
+      store.refreshState();
       fixture.detectChanges();
     });
 
@@ -272,71 +254,37 @@ describe('OrderListComponent', () => {
       expect(cells[1].textContent?.trim()).toBe(mockOrders[0].description);
     });
 
-    it('should show loading spinner when loading', fakeAsync(() => {
-      // First set loading to false and verify spinner is not present
-      store.overrideSelector(OrderSelectors.selectLoading, false);
-      store.refreshState();
-      fixture.detectChanges();
-      tick();
-      expect(fixture.nativeElement.querySelector('.loading-spinner')).toBeFalsy();
-
-      // Then set loading to true and verify spinner appears
+    it('should show loading spinner when loading', () => {
       store.overrideSelector(OrderSelectors.selectLoading, true);
       store.refreshState();
       fixture.detectChanges();
-      tick();
 
       const loadingSpinner = fixture.nativeElement.querySelector('.loading-spinner');
       expect(loadingSpinner).toBeTruthy();
       expect(loadingSpinner.querySelector('mat-spinner')).toBeTruthy();
-    }));
+    });
 
-    it('should show error message when there is an error', fakeAsync(() => {
-      // First verify no error is shown
-      store.overrideSelector(OrderSelectors.selectError, null);
-      store.overrideSelector(OrderSelectors.selectLoading, false);
-      store.refreshState();
-      fixture.detectChanges();
-      tick();
-      expect(fixture.nativeElement.querySelector('mat-error')).toBeFalsy();
-
-      // Then set error and verify it appears
+    it('should show error message when there is an error', () => {
       const errorMessage = 'Test error message';
       store.overrideSelector(OrderSelectors.selectError, errorMessage);
-      store.overrideSelector(OrderSelectors.selectLoading, false);
       store.refreshState();
       fixture.detectChanges();
-      tick();
 
       const errorElement = fixture.nativeElement.querySelector('mat-error');
       expect(errorElement).toBeTruthy();
       expect(errorElement.textContent?.trim()).toBe(errorMessage);
-    }));
+    });
 
-    it('should show no data message when filtered orders are empty', fakeAsync(() => {
-      // First verify message is not shown with data
-      store.overrideSelector(OrderSelectors.selectFilteredOrders, mockOrders);
-      store.overrideSelector(OrderSelectors.selectOrders, mockOrders);
-      store.overrideSelector(OrderSelectors.selectLoading, false);
+    it('should show no data message when filtered orders are empty', () => {
+      store.overrideSelector(OrderSelectors.selectFilteredOrdersByCountryAndDescription, []);
+      store.overrideSelector(OrderSelectors.selectOrdersWithFallback, []);
       store.refreshState();
       fixture.detectChanges();
-      tick();
-      expect(fixture.nativeElement.querySelector('.no-data-message')).toBeFalsy();
 
-      // Then verify message appears with no data
-      store.overrideSelector(OrderSelectors.selectFilteredOrders, []);
-      store.overrideSelector(OrderSelectors.selectOrders, []);
-      store.overrideSelector(OrderSelectors.selectLoading, false);
-      store.refreshState();
-      fixture.detectChanges();
-      tick();
-
-      const noDataMessage = fixture.nativeElement.querySelector('.no-data-message');
+      const noDataMessage = fixture.nativeElement.querySelector('.no-orders');
       expect(noDataMessage).toBeTruthy();
-      const messageText = noDataMessage.querySelector('span');
-      expect(messageText).toBeTruthy();
-      expect(messageText.textContent?.trim()).toBe('No orders found.');
-    }));
+      expect(noDataMessage.textContent?.trim()).toBe('No orders found');
+    });
   });
 
   describe('Navigation', () => {

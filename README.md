@@ -69,6 +69,8 @@ Development workflow:
 ### Frontend
 - Framework: Angular 19
 - Language: TypeScript
+- angular/material
+- ngrx/store
 - Styling: SCSS
 - Package Manager: npm
 - Container: Node.js 22 Alpine

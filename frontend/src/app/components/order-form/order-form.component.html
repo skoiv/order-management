@@ -22,6 +22,7 @@
           <mat-spinner diameter="40"></mat-spinner>
         </div>
 
+        <!-- Order Number -->
         <div class="form-row">
           <mat-form-field appearance="outline">
             <mat-label>Order Number</mat-label>
@@ -33,13 +34,17 @@
               {{ serverError || 'This order number already exists' }}
             </mat-error>
           </mat-form-field>
+        </div>
 
-          <mat-form-field appearance="outline">
+        <!-- Description -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
             <mat-label>Description</mat-label>
             <textarea
               matInput
               formControlName="description"
               placeholder="Enter order description"
+              rows="2"
             ></textarea>
             <mat-error *ngIf="orderForm.get('description')?.errors?.['required']">
               Description is required
@@ -47,8 +52,9 @@
           </mat-form-field>
         </div>
 
+        <!-- Address Fields -->
         <div class="form-row">
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" class="address-field">
             <mat-label>Street Address</mat-label>
             <input matInput formControlName="streetAddress" placeholder="Enter street address" />
             <mat-error *ngIf="orderForm.get('streetAddress')?.errors?.['required']">
@@ -56,57 +62,57 @@
             </mat-error>
           </mat-form-field>
 
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" class="town-field">
             <mat-label>Town</mat-label>
             <input matInput formControlName="town" placeholder="Enter town" />
             <mat-error *ngIf="orderForm.get('town')?.errors?.['required']">
               Town is required
             </mat-error>
           </mat-form-field>
-        </div>
 
-        <div class="form-row">
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" class="country-field">
             <mat-label>Country</mat-label>
             <input matInput formControlName="country" placeholder="Enter country" />
             <mat-error *ngIf="orderForm.get('country')?.errors?.['required']">
               Country is required
             </mat-error>
           </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Amount</mat-label>
-            <input
-              matInput
-              type="number"
-              step="0.01"
-              formControlName="amount"
-              placeholder="Enter amount"
-            />
-            <span matTextSuffix>{{ orderForm.get('currency')?.value }}</span>
-            <mat-error *ngIf="orderForm.get('amount')?.errors?.['required']">
-              Amount is required
-            </mat-error>
-            <mat-error *ngIf="orderForm.get('amount')?.errors?.['pattern']">
-              Please enter a valid amount (e.g., 99.99)
-            </mat-error>
-          </mat-form-field>
         </div>
 
+        <!-- Payment Details -->
         <div class="form-row">
-          <mat-form-field appearance="outline">
-            <mat-label>Currency</mat-label>
-            <mat-select formControlName="currency">
-              <mat-option value="EUR">EUR</mat-option>
-              <mat-option value="USD">USD</mat-option>
-              <mat-option value="GBP">GBP</mat-option>
-            </mat-select>
-            <mat-error *ngIf="orderForm.get('currency')?.errors?.['required']">
-              Currency is required
-            </mat-error>
-          </mat-form-field>
+          <div class="amount-currency-group">
+            <mat-form-field appearance="outline" class="amount-field">
+              <mat-label>Amount</mat-label>
+              <input
+                matInput
+                type="text"
+                formControlName="amount"
+                placeholder="e.g., 1 234,56"
+                class="no-spinners"
+              />
+              <mat-error *ngIf="orderForm.get('amount')?.errors?.['required']">
+                Amount is required
+              </mat-error>
+              <mat-error *ngIf="orderForm.get('amount')?.errors?.['pattern']">
+                Please enter a valid amount (e.g., 1 234,56)
+              </mat-error>
+            </mat-form-field>
 
-          <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" class="currency-field">
+              <mat-label>Currency</mat-label>
+              <mat-select formControlName="currency">
+                <mat-option value="EUR">EUR</mat-option>
+                <mat-option value="USD">USD</mat-option>
+                <mat-option value="GBP">GBP</mat-option>
+              </mat-select>
+              <mat-error *ngIf="orderForm.get('currency')?.errors?.['required']">
+                Currency is required
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <mat-form-field appearance="outline" class="date-field">
             <mat-label>Payment Due Date</mat-label>
             <input matInput [matDatepicker]="picker" formControlName="paymentDueDate" />
             <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>

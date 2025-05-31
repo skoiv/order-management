@@ -8,6 +8,7 @@ export interface OrderState {
   availableCountries: string[];
   loading: boolean;
   error: string | null;
+  createOrderSuccess: boolean;
 }
 
 export const initialState: OrderState = {
@@ -18,4 +19,5 @@ export const initialState: OrderState = {
   availableCountries: [],
   loading: false,
   error: null,
+  createOrderSuccess: false,
 };

@@ -167,6 +167,7 @@ describe('OrderFormComponent', () => {
 
     it('should navigate to list after successful submission', fakeAsync(() => {
       store.overrideSelector(OrderSelectors.selectError, null);
+      store.overrideSelector(OrderSelectors.selectCreateOrderSuccess, true);
       store.refreshState();
 
       component.orderForm.patchValue(validOrderData);

@@ -58,6 +58,7 @@
 - [x] Development guidelines
 
 ## Future Considerations
+- [ ] Go over styles in FE as there seems to be some redundant things in .scss files
 - [ ] Implement pagination/server side list
 - [ ] API documentation (Swagger)
 - [ ] Deployment instructions 

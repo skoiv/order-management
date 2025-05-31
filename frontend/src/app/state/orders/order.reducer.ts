@@ -56,6 +56,7 @@ export const orderReducer = createReducer(
       ...state,
       loading: true,
       error: null,
+      createOrderSuccess: false,
     }),
   ),
   on(
@@ -65,6 +66,7 @@ export const orderReducer = createReducer(
       loading: false,
       orders: [...state.orders, order],
       availableCountries: [...new Set([...state.orders, order].map(o => o.country))].sort(),
+      createOrderSuccess: true,
     }),
   ),
   on(
@@ -73,6 +75,7 @@ export const orderReducer = createReducer(
       ...state,
       loading: false,
       error,
+      createOrderSuccess: false,
     }),
   ),
 );

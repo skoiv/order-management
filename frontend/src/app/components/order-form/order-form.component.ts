@@ -22,6 +22,8 @@ export class OrderFormComponent implements OnDestroy {
 
   loading$ = this.store.select(OrderSelectors.selectLoading);
   error$ = this.store.select(OrderSelectors.selectError);
+  createOrderSuccess$ = this.store.select(OrderSelectors.selectCreateOrderSuccess);
+  duplicateError$ = this.store.select(OrderSelectors.selectDuplicateOrderError);
 
   constructor(
     private fb: FormBuilder,
@@ -34,18 +36,46 @@ export class OrderFormComponent implements OnDestroy {
       streetAddress: ['', Validators.required],
       town: ['', Validators.required],
       country: ['', Validators.required],
-      amount: ['', [Validators.required, Validators.pattern(/^\d+(\.\d{1,2})?$/)]],
+      amount: ['', [Validators.required, Validators.pattern(/^\d+(?:\s\d{3})*(?:,\d{1,2})?$/)]],
       currency: ['EUR', Validators.required],
       paymentDueDate: ['', Validators.required],
     });
 
-    // Subscribe to store errors to handle duplicate order numbers
-    this.error$.pipe(takeUntil(this.destroy$)).subscribe(error => {
-      if (error?.includes('already exists')) {
+    // Subscribe to duplicate order errors
+    this.duplicateError$.pipe(takeUntil(this.destroy$)).subscribe(error => {
+      if (error) {
         this.orderForm.get('orderNumber')?.setErrors({ duplicate: true });
         this.serverError = error;
       }
     });
+
+    // Subscribe to success state to handle navigation
+    this.createOrderSuccess$.pipe(takeUntil(this.destroy$)).subscribe(success => {
+      if (success) {
+        this.orderForm.reset({
+          orderNumber: '',
+          description: '',
+          streetAddress: '',
+          town: '',
+          country: '',
+          amount: '',
+          currency: 'EUR',
+          paymentDueDate: '',
+        });
+        this.navigateToList();
+      }
+    });
+
+    // Subscribe to amount changes to format the input
+    this.orderForm
+      .get('amount')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe(value => {
+        const formattedValue = OrderSelectors.selectFormattedAmount(value);
+        if (formattedValue !== value) {
+          this.orderForm.get('amount')?.setValue(formattedValue, { emitEvent: false });
+        }
+      });
   }
 
   ngOnDestroy(): void {
@@ -58,7 +88,7 @@ export class OrderFormComponent implements OnDestroy {
       const formValue = this.orderForm.value;
       const order = {
         ...formValue,
-        amount: formValue.amount.toString(),
+        amount: formValue.amount.replace(/\s/g, '').replace(',', '.'),
         paymentDueDate:
           formValue.paymentDueDate instanceof Date
             ? formValue.paymentDueDate.toISOString().split('T')[0]
@@ -66,24 +96,6 @@ export class OrderFormComponent implements OnDestroy {
       };
 
       this.store.dispatch(OrderActions.createOrder({ order }));
-      this.store
-        .select(OrderSelectors.selectError)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe(error => {
-          if (!error) {
-            this.orderForm.reset({
-              orderNumber: '',
-              description: '',
-              streetAddress: '',
-              town: '',
-              country: '',
-              amount: '',
-              currency: 'EUR',
-              paymentDueDate: '',
-            });
-            this.navigateToList();
-          }
-        });
     }
   }
 

@@ -13,7 +13,7 @@ A full-stack order management system built with Angular and NestJS, containerize
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/skoiv/order-management.git
 cd order-management
 ```
 2. Run backend and frontend tests

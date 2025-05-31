@@ -1,73 +1,115 @@
-<div class="order-list-container">
-  <div class="header">
-    <h2>Orders</h2>
-    <button class="create-button" (click)="navigateToCreate()">Create New Order</button>
-  </div>
+<div class="order-list-container mat-elevation-z8">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Orders</mat-card-title>
+      <div class="header-actions">
+        <button mat-raised-button color="primary" (click)="navigateToCreate()">
+          <mat-icon>add</mat-icon>
+          Create New Order
+        </button>
+      </div>
+    </mat-card-header>
 
-  <div *ngIf="error" class="error-message">
-    {{ error }}
-  </div>
+    <mat-card-content>
+      <!-- Error Message -->
+      <mat-error *ngIf="error$ | async" class="error-message">
+        {{ error$ | async }}
+      </mat-error>
 
-  <div *ngIf="!error" class="table-container">
-    <div class="filters">
-      <div class="filter-group">
-        <label for="countryFilter">Country:</label>
-        <select
-          id="countryFilter"
-          [(ngModel)]="selectedCountry"
-          (ngModelChange)="onCountryChange()"
-          class="filter-control"
-        >
-          <option value="">All Countries</option>
-          <option *ngFor="let country of availableCountries" [value]="country">
-            {{ country }}
-          </option>
-        </select>
+      <!-- Loading Spinner -->
+      <div *ngIf="loading$ | async" class="loading-spinner">
+        <mat-spinner diameter="40"></mat-spinner>
       </div>
 
-      <div class="filter-group">
-        <label for="descriptionFilter">Description:</label>
-        <input
-          type="text"
-          id="descriptionFilter"
-          [(ngModel)]="descriptionFilter"
-          (ngModelChange)="onDescriptionChange()"
-          placeholder="Search by description"
-          class="filter-control"
-        />
+      <!-- Filters -->
+      <div class="filters" *ngIf="(loading$ | async) === false">
+        <mat-form-field appearance="outline">
+          <mat-label>Country</mat-label>
+          <mat-select
+            [value]="selectedCountry$ | async"
+            (selectionChange)="onCountryChange($event.value)"
+          >
+            <mat-option value="">All Countries</mat-option>
+            <mat-option *ngFor="let country of availableCountries$ | async" [value]="country">
+              {{ country }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Description</mat-label>
+          <input
+            matInput
+            [value]="descriptionFilter$ | async"
+            (input)="onDescriptionChange($event.target.value)"
+            placeholder="Search by description"
+          />
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
       </div>
-    </div>
 
-    <table *ngIf="filteredOrders.length > 0" class="orders-table">
-      <thead>
-        <tr>
-          <th>Order Number</th>
-          <th>Description</th>
-          <th>Address</th>
-          <th>Town</th>
-          <th>Country</th>
-          <th>Amount</th>
-          <th>Currency</th>
-          <th>Payment Due Date</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let order of filteredOrders">
-          <td>{{ order.orderNumber }}</td>
-          <td>{{ order.description }}</td>
-          <td>{{ order.streetAddress }}</td>
-          <td>{{ order.town }}</td>
-          <td>{{ order.country }}</td>
-          <td>{{ order.amount }}</td>
-          <td>{{ order.currency }}</td>
-          <td>{{ order.paymentDueDate }}</td>
-        </tr>
-      </tbody>
-    </table>
+      <!-- Table -->
+      <div class="table-container" *ngIf="(loading$ | async) === false">
+        <table mat-table [dataSource]="filteredOrders$ | async" class="mat-elevation-z1">
+          <!-- Order Number Column -->
+          <ng-container matColumnDef="orderNumber">
+            <th mat-header-cell *matHeaderCellDef>Order Number</th>
+            <td mat-cell *matCellDef="let order">{{ order.orderNumber }}</td>
+          </ng-container>
 
-    <div *ngIf="filteredOrders.length === 0" class="no-orders">
-      <span *ngIf="orders.length === 0">No orders found.</span>
-      <span *ngIf="orders.length > 0">No orders match the selected filters.</span>
-    </div>
-  </div>
+          <!-- Description Column -->
+          <ng-container matColumnDef="description">
+            <th mat-header-cell *matHeaderCellDef>Description</th>
+            <td mat-cell *matCellDef="let order">{{ order.description }}</td>
+          </ng-container>
+
+          <!-- Address Column -->
+          <ng-container matColumnDef="streetAddress">
+            <th mat-header-cell *matHeaderCellDef>Address</th>
+            <td mat-cell *matCellDef="let order">{{ order.streetAddress }}</td>
+          </ng-container>
+
+          <!-- Town Column -->
+          <ng-container matColumnDef="town">
+            <th mat-header-cell *matHeaderCellDef>Town</th>
+            <td mat-cell *matCellDef="let order">{{ order.town }}</td>
+          </ng-container>
+
+          <!-- Country Column -->
+          <ng-container matColumnDef="country">
+            <th mat-header-cell *matHeaderCellDef>Country</th>
+            <td mat-cell *matCellDef="let order">{{ order.country }}</td>
+          </ng-container>
+
+          <!-- Amount Column -->
+          <ng-container matColumnDef="amount">
+            <th mat-header-cell *matHeaderCellDef>Amount</th>
+            <td mat-cell *matCellDef="let order">{{ order.amount }}</td>
+          </ng-container>
+
+          <!-- Currency Column -->
+          <ng-container matColumnDef="currency">
+            <th mat-header-cell *matHeaderCellDef>Currency</th>
+            <td mat-cell *matCellDef="let order">{{ order.currency }}</td>
+          </ng-container>
+
+          <!-- Payment Due Date Column -->
+          <ng-container matColumnDef="paymentDueDate">
+            <th mat-header-cell *matHeaderCellDef>Payment Due Date</th>
+            <td mat-cell *matCellDef="let order">{{ order.paymentDueDate }}</td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+
+        <!-- No Data Message -->
+        <div *ngIf="(filteredOrders$ | async)?.length === 0" class="no-data-message">
+          <mat-icon>info</mat-icon>
+          <span *ngIf="(orders$ | async)?.length === 0">No orders found.</span>
+          <span *ngIf="(orders$ | async)?.length > 0">No orders match the selected filters.</span>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
 </div>

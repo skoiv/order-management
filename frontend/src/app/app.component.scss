@@ -1,1 +1,13 @@
 // Global styles can be added here
+
+:host {
+  display: block;
+  height: 100vh;
+}
+
+.content {
+  padding: var(--content-padding, 20px);
+  height: calc(100vh - var(--toolbar-height, 64px));
+  box-sizing: border-box;
+  overflow-y: auto;
+}

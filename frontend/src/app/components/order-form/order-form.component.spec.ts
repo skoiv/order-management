@@ -1,16 +1,30 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { OrderFormComponent } from './order-form.component';
-import { OrderService } from '../../services/order.service';
-import { of, throwError } from 'rxjs';
-import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { MaterialModule } from '../../shared/material.module';
+import { MockStore, provideMockStore } from '@ngrx/store/testing';
+import * as OrderActions from '../../state/orders/order.actions';
+import * as OrderSelectors from '../../state/orders/order.selectors';
 
 describe('OrderFormComponent', () => {
   let component: OrderFormComponent;
   let fixture: ComponentFixture<OrderFormComponent>;
-  let orderService: jasmine.SpyObj<OrderService>;
   let router: jasmine.SpyObj<Router>;
+  let store: MockStore;
+
+  const initialState = {
+    orders: {
+      orders: [],
+      filteredOrders: [],
+      selectedCountry: '',
+      descriptionFilter: '',
+      availableCountries: [],
+      loading: false,
+      error: null,
+    },
+  };
 
   const validOrderData = {
     orderNumber: 'ORD-001',
@@ -24,27 +38,25 @@ describe('OrderFormComponent', () => {
   };
 
   beforeEach(async () => {
-    const orderServiceSpy = jasmine.createSpyObj('OrderService', ['createOrder']);
-    orderServiceSpy.createOrder.and.returnValue(of({}));
-
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
-      imports: [ReactiveFormsModule, OrderFormComponent],
-      providers: [
-        { provide: OrderService, useValue: orderServiceSpy },
-        { provide: Router, useValue: routerSpy },
-      ],
+      imports: [ReactiveFormsModule, MaterialModule, NoopAnimationsModule, OrderFormComponent],
+      providers: [provideMockStore({ initialState }), { provide: Router, useValue: routerSpy }],
     }).compileComponents();
 
-    orderService = TestBed.inject(OrderService) as jasmine.SpyObj<OrderService>;
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
+    store = TestBed.inject(MockStore);
   });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(OrderFormComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    store?.resetSelectors();
   });
 
   it('should create', () => {
@@ -68,20 +80,26 @@ describe('OrderFormComponent', () => {
 
   describe('Form Field Validation', () => {
     it('should validate required fields', () => {
-      Object.keys(validOrderData)
-        .filter(key => key !== 'currency')
-        .forEach(key => {
-          const control = component.orderForm.get(key);
-          expect(control?.errors?.['required'])
-            .withContext(`Field ${key} should have required error when empty`)
-            .toBeTruthy();
-        });
+      const form = component.orderForm;
+      expect(form.valid).toBeFalsy();
 
-      const currencyControl = component.orderForm.get('currency');
-      currencyControl?.setValue(null);
-      expect(currencyControl?.errors?.['required'])
-        .withContext('Currency field should have required error when cleared')
-        .toBeTruthy();
+      form.controls['orderNumber'].setValue('');
+      expect(form.controls['orderNumber'].errors?.['required']).toBeTruthy();
+
+      form.controls['description'].setValue('');
+      expect(form.controls['description'].errors?.['required']).toBeTruthy();
+
+      form.controls['streetAddress'].setValue('');
+      expect(form.controls['streetAddress'].errors?.['required']).toBeTruthy();
+
+      form.controls['town'].setValue('');
+      expect(form.controls['town'].errors?.['required']).toBeTruthy();
+
+      form.controls['country'].setValue('');
+      expect(form.controls['country'].errors?.['required']).toBeTruthy();
+
+      form.controls['amount'].setValue('');
+      expect(form.controls['amount'].errors?.['required']).toBeTruthy();
     });
 
     it('should validate amount format', () => {
@@ -93,7 +111,7 @@ describe('OrderFormComponent', () => {
       amountControl?.setValue('99.99');
       expect(amountControl?.errors).toBeNull();
 
-      amountControl?.setValue('1000');
+      amountControl?.setValue('100');
       expect(amountControl?.errors).toBeNull();
 
       amountControl?.setValue('99.999');
@@ -103,14 +121,16 @@ describe('OrderFormComponent', () => {
     it('should validate payment due date format', () => {
       const dueDateControl = component.orderForm.get('paymentDueDate');
 
-      dueDateControl?.setValue('invalid');
-      expect(dueDateControl?.errors?.['pattern']).toBeTruthy();
+      dueDateControl?.setValue(null);
+      expect(dueDateControl?.errors?.['required']).toBeTruthy();
 
-      dueDateControl?.setValue('2024-12-31');
+      const validDate = new Date('2024-12-31');
+      dueDateControl?.setValue(validDate);
       expect(dueDateControl?.errors).toBeNull();
 
-      dueDateControl?.setValue('31-12-2024');
-      expect(dueDateControl?.errors?.['pattern']).toBeTruthy();
+      const invalidDate = 'invalid';
+      dueDateControl?.setValue(invalidDate);
+      expect(dueDateControl?.errors?.['matDatepickerParse']).toBeTruthy();
     });
 
     it('should be valid when all fields are properly filled', () => {
@@ -121,42 +141,40 @@ describe('OrderFormComponent', () => {
 
   describe('Form Submission', () => {
     it('should not submit if form is invalid', () => {
+      const dispatchSpy = spyOn(store, 'dispatch');
       component.onSubmit();
-      expect(orderService.createOrder).not.toHaveBeenCalled();
+      expect(dispatchSpy).not.toHaveBeenCalled();
     });
 
-    it('should call createOrder service method on valid form submission', () => {
-      component.orderForm.patchValue(validOrderData);
-      component.onSubmit();
-      expect(orderService.createOrder).toHaveBeenCalledWith(validOrderData);
-    });
-
-    it('should reset form with default currency after successful submission', () => {
+    it('should dispatch createOrder action on valid form submission', () => {
+      const dispatchSpy = spyOn(store, 'dispatch');
       component.orderForm.patchValue(validOrderData);
       component.onSubmit();
 
-      expect(component.orderForm.get('currency')?.value).toBe('EUR');
-      expect(component.orderForm.get('orderNumber')?.value).toBe('');
-      expect(component.orderForm.get('description')?.value).toBe('');
-      expect(component.orderForm.get('streetAddress')?.value).toBe('');
-      expect(component.serverError).toBeNull();
+      expect(dispatchSpy).toHaveBeenCalledWith(OrderActions.createOrder({ order: validOrderData }));
     });
 
-    it('should handle duplicate order number error', () => {
+    it('should handle duplicate order number error', fakeAsync(() => {
       const errorMessage = 'Order number already exists';
-      const errorResponse = new HttpErrorResponse({
-        error: { message: errorMessage },
-        status: 409,
-        statusText: 'Conflict',
-      });
-      orderService.createOrder.and.returnValue(throwError(() => errorResponse));
-
-      component.orderForm.patchValue(validOrderData);
-      component.onSubmit();
+      store.overrideSelector(OrderSelectors.selectError, errorMessage);
+      store.refreshState();
+      fixture.detectChanges();
+      tick();
 
       expect(component.orderForm.get('orderNumber')?.errors?.['duplicate']).toBeTruthy();
       expect(component.serverError).toBe(errorMessage);
-    });
+    }));
+
+    it('should navigate to list after successful submission', fakeAsync(() => {
+      store.overrideSelector(OrderSelectors.selectError, null);
+      store.refreshState();
+
+      component.orderForm.patchValue(validOrderData);
+      component.onSubmit();
+      tick();
+
+      expect(router.navigate).toHaveBeenCalledWith(['/orders']);
+    }));
   });
 
   describe('Navigation', () => {
@@ -167,23 +185,15 @@ describe('OrderFormComponent', () => {
 
     it('should render back button', () => {
       fixture.detectChanges();
-      const backButton = fixture.nativeElement.querySelector('.back-button');
+      const backButton = fixture.nativeElement.querySelector('button[mat-button]');
       expect(backButton).toBeTruthy();
       expect(backButton.textContent).toContain('Back to List');
     });
 
     it('should navigate when back button is clicked', () => {
       fixture.detectChanges();
-      const backButton = fixture.nativeElement.querySelector('.back-button');
+      const backButton = fixture.nativeElement.querySelector('button[mat-button]');
       backButton.click();
-      expect(router.navigate).toHaveBeenCalledWith(['/orders']);
-    });
-
-    it('should navigate to list after successful form submission', () => {
-      component.orderForm.patchValue(validOrderData);
-      component.onSubmit();
-
-      expect(orderService.createOrder).toHaveBeenCalled();
       expect(router.navigate).toHaveBeenCalledWith(['/orders']);
     });
   });

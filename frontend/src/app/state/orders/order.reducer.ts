@@ -50,4 +50,29 @@ export const orderReducer = createReducer(
       filteredOrders,
     }),
   ),
+  on(
+    OrderActions.createOrder,
+    (state): OrderState => ({
+      ...state,
+      loading: true,
+      error: null,
+    }),
+  ),
+  on(
+    OrderActions.createOrderSuccess,
+    (state, { order }): OrderState => ({
+      ...state,
+      loading: false,
+      orders: [...state.orders, order],
+      availableCountries: [...new Set([...state.orders, order].map(o => o.country))].sort(),
+    }),
+  ),
+  on(
+    OrderActions.createOrderFailure,
+    (state, { error }): OrderState => ({
+      ...state,
+      loading: false,
+      error,
+    }),
+  ),
 );

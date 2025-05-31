@@ -27,3 +27,15 @@ export const updateFilteredOrders = createAction(
   '[Orders] Update Filtered Orders',
   props<{ filteredOrders: Order[] }>(),
 );
+
+export const createOrder = createAction('[Order] Create Order', props<{ order: Order }>());
+
+export const createOrderSuccess = createAction(
+  '[Order] Create Order Success',
+  props<{ order: Order }>(),
+);
+
+export const createOrderFailure = createAction(
+  '[Order] Create Order Failure',
+  props<{ error: string }>(),
+);

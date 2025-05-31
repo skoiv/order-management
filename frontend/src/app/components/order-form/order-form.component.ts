@@ -1,25 +1,32 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { OrderService } from '../../services/order.service';
 import { CommonModule } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { MaterialModule } from '../../shared/material.module';
+import { Store } from '@ngrx/store';
+import * as OrderActions from '../../state/orders/order.actions';
+import * as OrderSelectors from '../../state/orders/order.selectors';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-order-form',
   templateUrl: './order-form.component.html',
   styleUrls: ['./order-form.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule],
 })
-export class OrderFormComponent {
+export class OrderFormComponent implements OnDestroy {
   orderForm: FormGroup;
   serverError: string | null = null;
+  private destroy$ = new Subject<void>();
+
+  loading$ = this.store.select(OrderSelectors.selectLoading);
+  error$ = this.store.select(OrderSelectors.selectError);
 
   constructor(
     private fb: FormBuilder,
-    private orderService: OrderService,
     private router: Router,
+    private store: Store,
   ) {
     this.orderForm = this.fb.group({
       orderNumber: ['', Validators.required],
@@ -29,45 +36,58 @@ export class OrderFormComponent {
       country: ['', Validators.required],
       amount: ['', [Validators.required, Validators.pattern(/^\d+(\.\d{1,2})?$/)]],
       currency: ['EUR', Validators.required],
-      paymentDueDate: ['', [Validators.required, Validators.pattern(/^\d{4}-\d{2}-\d{2}$/)]],
+      paymentDueDate: ['', Validators.required],
     });
+
+    // Subscribe to store errors to handle duplicate order numbers
+    this.error$.pipe(takeUntil(this.destroy$)).subscribe(error => {
+      if (error?.includes('already exists')) {
+        this.orderForm.get('orderNumber')?.setErrors({ duplicate: true });
+        this.serverError = error;
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   onSubmit(): void {
     if (this.orderForm.valid) {
-      this.serverError = null;
       const formValue = this.orderForm.value;
       const order = {
         ...formValue,
         amount: formValue.amount.toString(),
-        paymentDueDate: formValue.paymentDueDate,
+        paymentDueDate:
+          formValue.paymentDueDate instanceof Date
+            ? formValue.paymentDueDate.toISOString().split('T')[0]
+            : formValue.paymentDueDate,
       };
 
-      this.orderService.createOrder(order).subscribe({
-        next: () => {
-          this.orderForm.reset({
-            orderNumber: '',
-            description: '',
-            streetAddress: '',
-            town: '',
-            country: '',
-            amount: '',
-            currency: 'EUR',
-            paymentDueDate: '',
-          });
-          this.navigateToList();
-        },
-        error: (error: HttpErrorResponse) => {
-          if (error.status === 409) {
-            this.orderForm.get('orderNumber')?.setErrors({ duplicate: true });
-            this.serverError = error.error.message;
+      this.store.dispatch(OrderActions.createOrder({ order }));
+      this.store
+        .select(OrderSelectors.selectError)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(error => {
+          if (!error) {
+            this.orderForm.reset({
+              orderNumber: '',
+              description: '',
+              streetAddress: '',
+              town: '',
+              country: '',
+              amount: '',
+              currency: 'EUR',
+              paymentDueDate: '',
+            });
+            this.navigateToList();
           }
-        },
-      });
+        });
     }
   }
 
-  navigateToList() {
+  navigateToList(): void {
     this.router.navigate(['/orders']);
   }
 }
